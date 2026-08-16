@@ -121,6 +121,21 @@ body{
 }
 .subtitle{color:#C9C8DB; font-size:9pt; letter-spacing:.02em;}
 .meta{text-align:right; font-size:8.2pt; line-height:2;}
+
+/* --- logo placeholder (sits under the invoice #/dates, right-aligned) --- */
+.logo-box{
+  width:140px; height:60px; margin:12px 0 0 auto;
+  border:1.5px dashed rgba(255,255,255,.4); border-radius:7px;
+  background:rgba(255,255,255,.05);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; overflow:hidden; transition:.15s;
+}
+.logo-box:hover{border-color:#fff; background:rgba(255,255,255,.1);}
+.logo-box.has-logo{border-style:solid; border-color:transparent; background:none;}
+.logo-box img{max-width:100%; max-height:100%; object-fit:contain; display:block;}
+.logo-ph{display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--lavender); pointer-events:none;}
+.logo-ph svg{width:20px; height:20px; opacity:.85;}
+.logo-ph span{font-size:7.6pt; font-weight:var(--w-med); letter-spacing:.04em; text-transform:uppercase;}
 .meta b{font-weight:var(--w-bold); color:#fff;}
 .meta .v{color:var(--lavender);}
 .stamp{
@@ -232,6 +247,8 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
 @media print{
   body{background:#fff;}
   .bar, .kill, .addrow{display:none !important;}
+  .logo-box{border:none !important; background:none !important;}
+  .logo-box:not(.has-logo){display:none !important;}
   .page{
     width:auto; min-height:0; margin:0; padding:0;
     box-shadow:none;
@@ -275,7 +292,8 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
   }
   .doctitle{font-size:26px;}
   .meta{text-align:left; width:100%;}
-  .meta div{display:flex; justify-content:space-between; gap:10px;}
+  .meta div:not(.logo-box){display:flex; justify-content:space-between; gap:10px;}
+  .logo-box{width:110px; height:48px; margin:10px auto 0 0;}
 
   .parties{flex-direction:column;}
   .party + .party{border-left:none; border-top:1px solid var(--line);}
@@ -357,6 +375,14 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
       <div><b id="numlabel">Invoice #:</b> <span class="v ph" contenteditable id="docnum">[INV-2026-001]</span></div>
       <div><b>Issue Date:</b> <span class="v" contenteditable id="issue">July 22, 2026</span></div>
       <div><b id="date2label">Due Date:</b> <span class="v ph" contenteditable id="date2">[Upon Completion / Due Date]</span></div>
+      <div class="logo-box" id="logoBox" title="Click to add your logo (PNG, JPG, or SVG)">
+        <input type="file" id="logoInput" accept="image/png,image/jpeg,image/svg+xml" hidden>
+        <img id="logoImg" alt="Business logo" style="display:none">
+        <div class="logo-ph" id="logoPh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span>+ Add logo</span>
+        </div>
+      </div>
       <div class="only-receipt" style="display:none"><b>Method:</b> <span class="v ph" contenteditable>[Zelle / Card / Transfer]</span></div>
     </div>
   </div>
@@ -600,12 +626,33 @@ $("#load").onchange = e => {
         tr.querySelector("td").appendChild(b);
       });
       $("#termslist").dataset.doc = s.doc;
+      rebindLogo();
       calc();
     }catch(err){ alert("That file couldn't be read. Pick a .json saved from this app."); }
     e.target.value = "";
   };
   r.readAsText(f);
 };
+
+/* ---------- logo upload ---------- */
+function rebindLogo(){
+  const logoBox = $("#logoBox"), logoInput = $("#logoInput"), logoImg = $("#logoImg"), logoPh = $("#logoPh");
+  logoBox.onclick = () => logoInput.click();
+  logoInput.onchange = e => {
+    const f = e.target.files[0];
+    if(!f) return;
+    if(f.size > 2*1024*1024){ alert("That image is over 2MB — pick a smaller file so saved documents stay a reasonable size."); e.target.value=""; return; }
+    const r = new FileReader();
+    r.onload = () => {
+      logoImg.src = r.result;
+      logoImg.style.display = "block";
+      logoPh.style.display = "none";
+      logoBox.classList.add("has-logo");
+    };
+    r.readAsDataURL(f);
+    e.target.value = "";
+  };
+}
 
 /* ---------- wiring ---------- */
 $$(".tab").forEach(t => t.onclick = () => setDoc(t.dataset.set));
@@ -634,6 +681,7 @@ document.addEventListener("paste", e => {
 });
 
 DEFAULT_ITEMS.forEach(addRow);
+rebindLogo();
 setDoc("invoice");
 </script>
 </body>
