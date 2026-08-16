@@ -31,6 +31,7 @@
   --page-w: 8.5in;
   --page-h: 11in;
   --pad:    0.55in;
+  --pad-m:  clamp(14px, 5vw, 0.55in); /* screen padding, shrinks on mobile */
 }
 
 *{box-sizing:border-box;}
@@ -91,8 +92,8 @@ body{
    PAGE
    ============================================================ */
 .page{
-  width:var(--page-w); min-height:var(--page-h);
-  margin:26px auto; padding:var(--pad);
+  width:100%; max-width:var(--page-w); min-height:auto;
+  margin:20px auto; padding:var(--pad-m);
   background:#fff;
   box-shadow:0 10px 40px rgba(0,0,0,.3);
   font-size:8.6pt; line-height:1.55;
@@ -241,6 +242,74 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
   table.items thead{display:table-header-group;}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+
+/* ============================================================
+   RESPONSIVE — screen only
+   ============================================================ */
+@media screen and (max-width:900px){
+  .bar{
+    padding:10px 12px; gap:8px;
+  }
+  .bar .grp{flex-wrap:wrap; row-gap:6px;}
+  .hint{width:100%; margin-left:0; order:99; text-align:center;}
+  .totals{width:70%;}
+}
+
+@media screen and (max-width:640px){
+  body{padding-bottom:64px;} /* room for the floating print button */
+
+  .bar{
+    position:sticky; gap:6px;
+  }
+  .bar .sep{display:none;}
+  .bar .grp{width:100%; justify-content:center;}
+  .bar #print{display:none;} /* replaced by the floating button below */
+  .hint{display:none;}
+
+  .page{
+    margin:0; box-shadow:none; font-size:9.6px;
+  }
+
+  .head{
+    flex-direction:column; padding:18px 16px; gap:10px;
+  }
+  .doctitle{font-size:26px;}
+  .meta{text-align:left; width:100%;}
+  .meta div{display:flex; justify-content:space-between; gap:10px;}
+
+  .parties{flex-direction:column;}
+  .party + .party{border-left:none; border-top:1px solid var(--line);}
+
+  .sechead{margin:20px 0 8px; font-size:13px;}
+
+  /* line-item table becomes a stacked card list on narrow screens */
+  table.items, table.items tbody, table.items tr, table.items td{display:block; width:100%;}
+  table.items thead{display:none;}
+  table.items tbody td{
+    border-bottom:none; text-align:left; padding:4px 2px;
+  }
+  table.items tbody td:first-child{padding-top:14px;}
+  table.items tr.item{
+    padding:0 2px 12px; border-bottom:1px solid var(--line); margin-bottom:4px;
+  }
+  .qty::before{content:"Qty: ";  color:var(--muted); font-weight:var(--w-med);}
+  .rate::before{content:"Rate: "; color:var(--muted); font-weight:var(--w-med);}
+  .amt::before{content:"Amount: "; color:var(--muted); font-weight:var(--w-med);}
+  .qty,.rate,.amt{text-align:left;}
+  .kill{position:static; float:right; margin-top:-34px;}
+
+  .totals{width:100%;}
+  .sign{flex-direction:column; gap:20px;}
+
+  /* floating print/PDF button, thumb-reachable */
+  .fab{
+    display:flex; position:fixed; right:16px; bottom:16px; z-index:60;
+    background:var(--purple); color:#fff; border:none; border-radius:999px;
+    padding:13px 20px; font-family:var(--font); font-size:12px; font-weight:var(--w-med);
+    box-shadow:0 6px 18px rgba(0,0,0,.35); cursor:pointer; align-items:center; gap:8px;
+  }
+}
+@media screen and (min-width:641px){ .fab{display:none;} }
 </style>
 </head>
 
@@ -271,6 +340,8 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
   </div>
   <span class="hint">Click any text to edit it</span>
 </div>
+
+<button class="fab" id="printMobile">🖨 Print / Save PDF</button>
 
 <!-- ================= DOCUMENT ================= -->
 <div class="page" id="page">
@@ -540,6 +611,7 @@ $("#load").onchange = e => {
 $$(".tab").forEach(t => t.onclick = () => setDoc(t.dataset.set));
 $("#add").onclick   = () => addRow();
 $("#print").onclick = () => window.print();
+$("#printMobile").onclick = () => window.print();
 ["#tax","#dep","#cur"].forEach(s => $(s).addEventListener("input", calc));
 document.addEventListener("input", e => {
   if(e.target.closest(".qty, .rate")) calc();
