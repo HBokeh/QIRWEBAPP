@@ -100,9 +100,18 @@ body{
 }
 
 /* editable fields */
-[contenteditable]{outline:none; cursor:text;}
-[contenteditable]:hover{background:rgba(91,79,196,.07); border-radius:2px;}
-[contenteditable]:focus{background:rgba(91,79,196,.13); border-radius:2px;}
+[contenteditable]{
+  outline:none; cursor:text;
+  border-bottom:1px dashed rgba(91,79,196,.35);
+  padding-bottom:1px;
+  transition:.15s;
+}
+[contenteditable]:hover{background:rgba(91,79,196,.07); border-radius:2px; border-bottom-color:rgba(91,79,196,.65);}
+[contenteditable]:focus{background:rgba(91,79,196,.13); border-radius:2px; border-bottom-color:var(--purple);}
+/* on the navy header, use a light underline instead so it stays visible */
+.head [contenteditable]{border-bottom-color:rgba(255,255,255,.32);}
+.head [contenteditable]:hover{background:rgba(255,255,255,.08); border-bottom-color:rgba(255,255,255,.7);}
+.head [contenteditable]:focus{background:rgba(255,255,255,.14); border-bottom-color:#fff;}
 .ph{color:var(--muted);}
 
 /* --- header band --- */
@@ -122,9 +131,9 @@ body{
 .subtitle{color:#C9C8DB; font-size:9pt; letter-spacing:.02em;}
 .meta{text-align:right; font-size:8.2pt; line-height:2;}
 
-/* --- logo placeholder (sits under the invoice #/dates, right-aligned) --- */
+/* --- logo placeholder (sits below "photography services") --- */
 .logo-box{
-  width:140px; height:60px; margin:12px 0 0 auto;
+  width:140px; height:60px; margin:14px 0 0;
   border:1.5px dashed rgba(255,255,255,.4); border-radius:7px;
   background:rgba(255,255,255,.05);
   display:flex; align-items:center; justify-content:center;
@@ -209,7 +218,9 @@ tr.item{position:relative;}
 .terms{
   margin-top:26px; background:var(--purple-tint);
   padding:16px 20px;
+  display:flex; align-items:flex-start; gap:22px;
 }
+.terms-text{flex:1; min-width:0;}
 .terms h4{
   margin:0 0 10px; font-size:8.6pt;
   font-weight:var(--w-bold); letter-spacing:.05em; color:var(--navy);
@@ -219,14 +230,26 @@ tr.item{position:relative;}
 .terms .k{color:var(--purple); font-weight:var(--w-bold);}
 .terms ul{margin:0; padding:0;}
 
-/* --- signature block (quote only) --- */
-.sign{display:none; margin-top:26px; gap:36px;}
-body[data-doc="quote"] .sign{display:flex;}
-.sign div{flex:1;}
-.sigline{border-bottom:1px solid var(--navy); height:30px; margin-bottom:6px;}
-.siglabel{font-size:7.6pt; color:var(--muted); letter-spacing:.05em;}
+/* --- QR code placeholder (invoice only) --- */
+.qr-wrap{display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;}
+.qr-box{
+  width:82px; height:82px;
+  border:1.5px dashed rgba(91,79,196,.5); border-radius:8px;
+  background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; overflow:hidden; transition:.15s;
+}
+.qr-box:hover{border-color:var(--purple); background:#F4F3FD;}
+.qr-box.has-qr{border-style:solid; border-color:var(--line);}
+.qr-box img{width:100%; height:100%; object-fit:contain; display:block;}
+.qr-ph{display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--purple); pointer-events:none;}
+.qr-ph svg{width:22px; height:22px;}
+.qr-ph span{font-size:6.8pt; font-weight:var(--w-med); letter-spacing:.03em;}
+.qr-caption{
+  font-size:7.2pt; font-weight:var(--w-bold); color:var(--purple);
+  letter-spacing:.06em; text-transform:uppercase;
+}
 
-/* --- footer --- */
 .foot{
   margin-top:26px; background:var(--panel); border:1px solid var(--line);
   padding:12px 18px; text-align:center;
@@ -249,11 +272,13 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
   .bar, .kill, .addrow{display:none !important;}
   .logo-box{border:none !important; background:none !important;}
   .logo-box:not(.has-logo){display:none !important;}
+  .qr-wrap:not(.has-qr){display:none !important;}
   .page{
     width:auto; min-height:0; margin:0; padding:0;
     box-shadow:none;
   }
   [contenteditable]:hover, [contenteditable]:focus{background:none !important;}
+  [contenteditable]{border-bottom:none !important; padding-bottom:0 !important;}
   *{-webkit-print-color-adjust:exact !important; print-color-adjust:exact !important;}
   .parties, .terms, table.items tr, .totals{break-inside:avoid;}
   table.items thead{display:table-header-group;}
@@ -293,7 +318,7 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
   .doctitle{font-size:26px;}
   .meta{text-align:left; width:100%;}
   .meta div:not(.logo-box){display:flex; justify-content:space-between; gap:10px;}
-  .logo-box{width:110px; height:48px; margin:10px auto 0 0;}
+  .logo-box{width:110px; height:48px; margin:10px 0 0;}
 
   .parties{flex-direction:column;}
   .party + .party{border-left:none; border-top:1px solid var(--line);}
@@ -317,7 +342,8 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
   .kill{position:static; float:right; margin-top:-34px;}
 
   .totals{width:100%;}
-  .sign{flex-direction:column; gap:20px;}
+  .terms{flex-direction:column; align-items:stretch;}
+  .qr-wrap{flex-direction:row; align-self:center; gap:10px; margin-top:6px;}
 
   /* floating print/PDF button, thumb-reachable */
   .fab{
@@ -369,12 +395,6 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
       <div class="eyebrow" contenteditable>Real Estate</div>
       <h1 class="doctitle" id="doctitle">INVOICE</h1>
       <div class="subtitle" contenteditable>photography services</div>
-      <div class="stamp">PAID IN FULL</div>
-    </div>
-    <div class="meta">
-      <div><b id="numlabel">Invoice #:</b> <span class="v ph" contenteditable id="docnum">[INV-2026-001]</span></div>
-      <div><b>Issue Date:</b> <span class="v" contenteditable id="issue">July 22, 2026</span></div>
-      <div><b id="date2label">Due Date:</b> <span class="v ph" contenteditable id="date2">[Upon Completion / Due Date]</span></div>
       <div class="logo-box" id="logoBox" title="Click to add your logo (PNG, JPG, or SVG)">
         <input type="file" id="logoInput" accept="image/png,image/jpeg,image/svg+xml" hidden>
         <img id="logoImg" alt="Business logo" style="display:none">
@@ -383,6 +403,12 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
           <span>+ Add logo</span>
         </div>
       </div>
+      <div class="stamp">PAID IN FULL</div>
+    </div>
+    <div class="meta">
+      <div><b id="numlabel">Invoice #:</b> <span class="v ph" contenteditable id="docnum">[INV-2026-001]</span></div>
+      <div><b>Issue Date:</b> <span class="v" contenteditable id="issue">July 22, 2026</span></div>
+      <div><b id="date2label">Due Date:</b> <span class="v ph" contenteditable id="date2">[Upon Completion / Due Date]</span></div>
       <div class="only-receipt" style="display:none"><b>Method:</b> <span class="v ph" contenteditable>[Zelle / Card / Transfer]</span></div>
     </div>
   </div>
@@ -429,13 +455,21 @@ body[data-doc="receipt"] .trow.balance{background:var(--green-tint); color:var(-
   </div>
 
   <div class="terms">
-    <h4 id="termshead">PAYMENT INFORMATION &amp; TERMS</h4>
-    <ul id="termslist"></ul>
-  </div>
-
-  <div class="sign">
-    <div><div class="sigline"></div><div class="siglabel">CLIENT SIGNATURE</div></div>
-    <div><div class="sigline"></div><div class="siglabel">DATE</div></div>
+    <div class="terms-text">
+      <h4 id="termshead">PAYMENT INFORMATION &amp; TERMS</h4>
+      <ul id="termslist"></ul>
+    </div>
+    <div class="qr-wrap only-invoice" id="qrWrap">
+      <div class="qr-box" id="qrBox" title="Click to add your payment QR code">
+        <input type="file" id="qrInput" accept="image/png,image/jpeg" hidden>
+        <img id="qrImg" alt="Payment QR code" style="display:none">
+        <div class="qr-ph" id="qrPh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01"/></svg>
+          <span>+ QR</span>
+        </div>
+      </div>
+      <div class="qr-caption">Pay online</div>
+    </div>
   </div>
 
   <div class="foot" contenteditable id="foot">Thank you for your business! If you have any questions regarding this invoice, please reach out using the contact information above.</div>
@@ -627,6 +661,7 @@ $("#load").onchange = e => {
       });
       $("#termslist").dataset.doc = s.doc;
       rebindLogo();
+      rebindQR();
       calc();
     }catch(err){ alert("That file couldn't be read. Pick a .json saved from this app."); }
     e.target.value = "";
@@ -648,6 +683,27 @@ function rebindLogo(){
       logoImg.style.display = "block";
       logoPh.style.display = "none";
       logoBox.classList.add("has-logo");
+    };
+    r.readAsDataURL(f);
+    e.target.value = "";
+  };
+}
+
+/* ---------- QR code upload (invoice only) ---------- */
+function rebindQR(){
+  const qrWrap = $("#qrWrap"), qrBox = $("#qrBox"), qrInput = $("#qrInput"), qrImg = $("#qrImg"), qrPh = $("#qrPh");
+  qrBox.onclick = () => qrInput.click();
+  qrInput.onchange = e => {
+    const f = e.target.files[0];
+    if(!f) return;
+    if(f.size > 2*1024*1024){ alert("That image is over 2MB — pick a smaller file so saved documents stay a reasonable size."); e.target.value=""; return; }
+    const r = new FileReader();
+    r.onload = () => {
+      qrImg.src = r.result;
+      qrImg.style.display = "block";
+      qrPh.style.display = "none";
+      qrBox.classList.add("has-qr");
+      qrWrap.classList.add("has-qr");
     };
     r.readAsDataURL(f);
     e.target.value = "";
@@ -682,6 +738,7 @@ document.addEventListener("paste", e => {
 
 DEFAULT_ITEMS.forEach(addRow);
 rebindLogo();
+rebindQR();
 setDoc("invoice");
 </script>
 </body>
